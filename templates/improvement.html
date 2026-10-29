@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resume Improvement Report</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <h1>Resume Improvement Report</h1>
+
+        <section>
+            <h2>Missing Keywords</h2>
+            {% if improvement.missing_keywords %}
+                <ul>
+                    {% for keyword in improvement.missing_keywords %}
+                        <li>{{ keyword }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No missing keywords detected by the current rules.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Weak Phrases</h2>
+            {% if improvement.weak_phrases %}
+                <ul>
+                    {% for phrase in improvement.weak_phrases %}
+                        <li>{{ phrase }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No configured weak phrases detected.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Recommended Actions</h2>
+            <ul>
+                {% for suggestion in improvement.suggestions %}
+                    <li>{{ suggestion }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <a href="/">Back to Analysis</a>
+    </main>
+</body>
+</html>

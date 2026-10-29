@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+pypdf
+sentence-transformers
+numpy
+pytest
+reportlab

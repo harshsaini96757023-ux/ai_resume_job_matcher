@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume & Job Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <p class="eyebrow">CAREER TOOL</p>
+            <h1>AI Resume <span>&amp; Job Matcher</span></h1>
+            <p>Compare resume skills and job requirements using semantic NLP.</p>
+        </header>
+
+        {% if error %}
+        <div class="alert" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <section class="panel">
+            <form action="/analyze" method="post" enctype="multipart/form-data">
+                <label for="resume">Upload resume (PDF, max 5 MB)</label>
+                <input id="resume" type="file" name="resume" accept=".pdf,application/pdf" required>
+
+                <label for="job_description">Job description</label>
+                <textarea id="job_description" name="job_description" rows="9"
+                    placeholder="Paste job responsibilities and requirements..." required></textarea>
+
+                <button id="submit-button" type="submit">Analyze Resume</button>
+                <p class="hint">The first NLP analysis may take longer while the model loads.</p>
+            </form>
+        </section>
+
+        <nav class="account-nav">
+            <a href="/">Resume Analyzer</a>
+            <a href="/history">Analysis History</a>
+
+            <form action="/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        </nav>
+
+
+        {% if result %}
+
+        {% if result and report_id %}
+        <div class="report-download-panel">
+            <div>
+                <h3>Analysis report ready</h3>
+                <p>
+                    Download your ATS score, semantic matching results,
+                    skills comparison and improvement suggestions.
+                </p>
+            </div>
+
+            <a class="download-report-btn" href="{{ url_for('download_report', report_id=report_id) }}">
+                <span aria-hidden="true">↓</span>
+                Download PDF Report
+            </a>
+        </div>
+        {% endif %}
+
+        <nav class="account-nav">
+            <a href="/">Resume Analyzer</a>
+            <a href="/history">Analysis History</a>
+
+            <form action="/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        </nav>
+
+
+        <section class="results">
+            <div class="score-card">
+                <p>Semantic Requirement Match</p>
+                <strong>{{ result.score }}%</strong>
+
+                <!-- ATS Resume Score -->
+                <section class="ats-panel">
+                    <div class="ats-heading">
+                        <div>
+                            <p class="ats-eyebrow">RESUME QUALITY ANALYSIS</p>
+                            <h2>ATS Resume Score</h2>
+                        </div>
+
+                        <div class="ats-score">
+                            <span>{{ result.ats.score }}</span>
+                            <small>/100</small>
+                        </div>
+                    </div>
+
+                    <div class="ats-progress">
+                        <div class="ats-progress-fill" style="width: {{ result.ats.score }}%;"></div>
+                    </div>
+
+                    <p class="ats-description">
+                        Based on resume text, detected sections, skills and readability.
+                    </p>
+
+                    <div class="ats-stats">
+                        <div class="ats-stat">
+                            <strong>{{ result.ats.word_count }}</strong>
+                            <span>Words detected</span>
+                        </div>
+                        <div class="ats-stat">
+                            <strong>{{ result.ats.sections_found | length }}</strong>
+                            <span>Sections detected</span>
+                        </div>
+                        <div class="ats-stat">
+                            <strong>{{ result.ats.skills_found | length }}</strong>
+                            <span>Skills detected</span>
+                        </div>
+                    </div>
+
+                    <h3>Score Breakdown</h3>
+
+                    <div class="ats-breakdown">
+                        {% for name, item in result.ats.checks.items() %}
+                        <div class="ats-breakdown-row">
+                            <div class="ats-breakdown-title">
+                                <span>{{ name }}</span>
+                                <strong>{{ item.score }}/{{ item.max_score }}</strong>
+                            </div>
+
+                            <div class="ats-mini-progress">
+                                <div class="ats-mini-fill"
+                                    style="width: {{ (item.score / item.max_score * 100) | round }}%;"></div>
+                            </div>
+
+                            {% if item.details is string %}
+                            <p>{{ item.details }}</p>
+                            {% elif name == "Skills Evidence" %}
+                            <p>
+                                {% if item.details %}
+                                {{ item.details | join(", ") }}
+                                {% else %}
+                                No supported skills detected.
+                                {% endif %}
+                            </p>
+                            {% elif name == "Resume Sections" %}
+                            <p>
+                                {% for section, found in item.details.items() %}
+                                {{ section }}: {{ "Found" if found else "Not detected" }}{% if not loop.last %} · {%
+                                endif %}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h3>ATS Improvement Suggestions</h3>
+                    <ul class="ats-suggestions">
+                        {% for suggestion in result.ats.suggestions %}
+                        <li>{{ suggestion }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <p class="ats-disclaimer">
+                        {{ result.ats.disclaimer }}
+                    </p>
+                </section>
+
+                <p class="note">
+                    {{ result.semantic_matched|length }}
+                    of {{ result.requirements_count }}
+                    text chunks met the initial similarity threshold.
+                </p>
+            </div>
+
+            <div class="columns">
+                <article class="skill-card">
+                    <h2>Matching Skills</h2>
+                    {% if result.matched %}
+                    {% for skill in result.matched %}
+                    <span class="tag good">{{ skill }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <p>No matching skill keywords detected.</p>
+                    {% endif %}
+                </article>
+
+                <article class="skill-card">
+                    <h2>Missing Skill Keywords</h2>
+                    {% if result.missing %}
+                    {% for skill in result.missing %}
+                    <span class="tag missing">{{ skill }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <p>No missing detected skill keywords.</p>
+                    {% endif %}
+                </article>
+            </div>
+
+            <article class="skill-card">
+                <h2>Semantically Matched Text</h2>
+                {% if result.semantic_matched %}
+                {% for item in result.semantic_matched %}
+                <div class="requirement good-box">
+                    <p>{{ item.requirement }}</p>
+                    <small>Similarity: {{ item.similarity }}%</small>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p>No text chunks crossed the initial similarity threshold.</p>
+                {% endif %}
+            </article>
+
+            <article class="skill-card">
+                <h2>Requirements to Review</h2>
+                {% if result.semantic_missing %}
+                {% for item in result.semantic_missing %}
+                <div class="requirement missing-box">
+                    <p>{{ item.requirement }}</p>
+                    <small>Similarity: {{ item.similarity }}%</small>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p>All compared chunks crossed the initial threshold. Review manually too.</p>
+                {% endif %}
+            </article>
+
+            <article class="skill-card">
+                <h2>Suggestions</h2>
+                <ul>
+                    {% for suggestion in result.suggestions %}
+                    <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            {% if result and result.improvement %}
+            <section class="improvement-card">
+                <h2>Resume Improvement Suggestions</h2>
+
+                <h3>Missing Job Keywords</h3>
+                {% if result.improvement.missing_keywords %}
+                <ul>
+                    {% for keyword in result.improvement.missing_keywords %}
+                    <li>{{ keyword }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No missing keywords detected by the current rules.</p>
+                {% endif %}
+
+                <h3>Weak Phrases</h3>
+                {% if result.improvement.weak_phrases %}
+                <ul>
+                    {% for phrase in result.improvement.weak_phrases %}
+                    <li>{{ phrase }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No configured weak phrases detected.</p>
+                {% endif %}
+
+                <h3>Recommended Actions</h3>
+                <ul>
+                    {% for suggestion in result.improvement.suggestions %}
+                    <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+
+
+            <p class="disclaimer">
+                This is an experimental semantic matching score, not a hiring
+                probability or proof of skill. Similarity can be imperfect.
+                Review results manually and claim only genuine skills.
+            </p>
+        </section>
+        {% endif %}
+
+        <footer>
+            Built with Python, FastAPI and Sentence Transformers
+        </footer>
+    </main>
+    <script src="{{ url_for('static', path='/script.js') }}"></script>
+</body>
+
+</html>

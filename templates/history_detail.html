@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <main class="auth-container" style="width:min(900px, calc(100% - 32px))">
+        <section class="auth-card">
+            <h1>Previous Analysis</h1>
+            <p>Resume: {{ record.filename }}</p>
+            <p>Analyzed: {{ record.created_at }}</p>
+
+            <div class="history-item">
+                <h2>ATS Resume Score: {{ result.ats.score }}/100</h2>
+                <h2>Semantic Match Score: {{ result.score }}%</h2>
+                <p>Resume words: {{ result.ats.word_count }}</p>
+            </div>
+
+            <h2>Matched Skills</h2>
+            {% if result.matched %}
+                <ul>
+                    {% for skill in result.matched %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No matched skills detected.</p>
+            {% endif %}
+
+            <h2>Missing Skills</h2>
+            {% if result.missing %}
+                <ul>
+                    {% for skill in result.missing %}
+                        <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No missing skills detected.</p>
+            {% endif %}
+
+            <h2>Improvement Suggestions</h2>
+            {% if result.suggestions %}
+                <ul>
+                    {% for suggestion in result.suggestions %}
+                        <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No suggestions saved.</p>
+            {% endif %}
+
+            <p>
+                <a href="/history/{{ record.id }}/download">Download PDF</a>
+                |
+                <a href="/history">Back to History</a>
+            </p>
+        </section>
+    </main>
+</body>
+</html>

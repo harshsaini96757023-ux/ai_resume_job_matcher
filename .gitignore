@@ -1,0 +1,18 @@
+
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+uploads/*
+!uploads/.gitkeep
+.pytest_cache/
+# Local database
+resume_matcher.db
+resume_matcher.db-shm
+resume_matcher.db-wal
+
+# Secrets
+.env
+backup

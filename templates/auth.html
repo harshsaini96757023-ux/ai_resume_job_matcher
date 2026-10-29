@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "Create Account" if mode == "register" else "Login" }} | Resume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <main class="auth-container">
+        <section class="auth-card">
+            <h1>
+                {{ "Create your account" if mode == "register" else "Welcome back" }}
+            </h1>
+            <p>AI Resume &amp; Job Matcher</p>
+
+            {% if error %}
+                <div class="alert">{{ error }}</div>
+            {% endif %}
+
+            {% if mode == "register" %}
+            <form action="/register" method="post">
+                <label for="username">Username</label>
+                <input id="username" name="username"
+                       minlength="3" maxlength="50"
+                       pattern="[A-Za-z0-9_]{3,50}" required>
+
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email"
+                       maxlength="255" required>
+
+                <label for="password">Password (minimum 12 characters)</label>
+                <input id="password" name="password" type="password"
+                       minlength="12" required>
+
+                <button type="submit">Create Account</button>
+            </form>
+            <p>Already registered? <a href="/login">Login</a></p>
+            {% else %}
+            <form action="/login" method="post">
+                <label for="username_or_email">Username or Email</label>
+                <input id="username_or_email" name="username_or_email"
+                       autocomplete="username" required>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password"
+                       autocomplete="current-password" required>
+
+                <button type="submit">Login</button>
+            </form>
+            <p>New user? <a href="/register">Create an account</a></p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
