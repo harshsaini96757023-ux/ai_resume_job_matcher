@@ -7,3 +7,6 @@ sentence-transformers
 numpy
 pytest
 reportlab
+pwdlib[argon2]
+sqlalchemy
+itsdangerous
