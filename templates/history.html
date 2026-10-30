@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analysis History</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
+
 <body>
     <main class="auth-container" style="width:min(900px, calc(100% - 32px))">
         <section class="auth-card">
@@ -15,21 +16,21 @@
             <p><a href="/">← Back to Analyzer</a></p>
 
             {% if history %}
-                {% for item in history %}
-                <article class="history-item">
-                    <h3>{{ item.filename }}</h3>
-                    <p>ATS Score: <strong>{{ item.ats_score }}/100</strong></p>
-                    <p>Semantic Match: <strong>{{ item.semantic_score }}%</strong></p>
-                    <p>Created: {{ item.created_at }}</p>
-                    <p>
-                        <a href="/history/{{ item.id }}">View Results</a>
-                        |
-                        <a href="/history/{{ item.id }}/download">Download PDF</a>
-                    </p>
-                </article>
-                {% endfor %}
+            {% for item in history %}
+            <article class="history-item">
+                <h3>{{ item.filename }}</h3>
+                <p>ATS Score: <strong>{{ item.ats_score }}/100</strong></p>
+                <p>Semantic Match: <strong>{{ item.semantic_score }}%</strong></p>
+                <p>Created: {{ item.created_at.strftime('%d %b %Y, %I:%M %p') if item.created_at else 'N/A' }}</p>
+                <p>
+                    <a href="/history/{{ item.id }}">View Results</a>
+                    |
+                    <a href="/history/{{ item.id }}/download">Download PDF</a>
+                </p>
+            </article>
+            {% endfor %}
             {% else %}
-                <p>No saved analyses yet. Analyze a resume to see it here.</p>
+            <p>No saved analyses yet. Analyze a resume to see it here.</p>
             {% endif %}
 
             <form action="/logout" method="post">
@@ -38,4 +39,5 @@
         </section>
     </main>
 </body>
+
 </html>

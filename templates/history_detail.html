@@ -1,64 +1,151 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Previous Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
+
 <body>
+
     <main class="auth-container" style="width:min(900px, calc(100% - 32px))">
         <section class="auth-card">
+
             <h1>Previous Analysis</h1>
-            <p>Resume: {{ record.filename }}</p>
-            <p>Analyzed: {{ record.created_at }}</p>
+
+            <p><strong>Resume:</strong> {{ record.filename }}</p>
+            <p><strong>Analyzed:</strong>
+                {{ record.created_at.strftime('%d %b %Y, %I:%M %p') if record.created_at else 'N/A' }}
+            </p>
+
+            <hr>
 
             <div class="history-item">
-                <h2>ATS Resume Score: {{ result.ats.score }}/100</h2>
-                <h2>Semantic Match Score: {{ result.score }}%</h2>
-                <p>Resume words: {{ result.ats.word_count }}</p>
+                <h2>ATS Resume Score: {{ result.get('ats', {}).get('score', 0) }}/100</h2>
+                <h2>Semantic Match Score: {{ result.get('score', 0) }}%</h2>
+                <p>Resume words: {{ result.get('ats', {}).get('word_count', 0) }}</p>
             </div>
 
-            <h2>Matched Skills</h2>
-            {% if result.matched %}
-                <ul>
-                    {% for skill in result.matched %}
-                        <li>{{ skill }}</li>
-                    {% endfor %}
-                </ul>
+            <h2>ATS Score Breakdown</h2>
+
+            {% for name, item in result.get('ats', {}).get('checks', {}).items() %}
+            <div class="history-item">
+                <strong>{{ name }}</strong>
+                <p>{{ item.get('score', 0) }}/{{ item.get('max_score', 0) }}</p>
+                <p>{{ item.get('details', '') }}</p>
+            </div>
             {% else %}
-                <p>No matched skills detected.</p>
+            <p>No ATS breakdown saved.</p>
+            {% endfor %}
+
+            <h2>Matched Skills</h2>
+            {% if result.get('matched') %}
+            <ul>
+                {% for skill in result.get('matched', []) %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No matched skills detected.</p>
             {% endif %}
 
             <h2>Missing Skills</h2>
-            {% if result.missing %}
-                <ul>
-                    {% for skill in result.missing %}
-                        <li>{{ skill }}</li>
-                    {% endfor %}
-                </ul>
+            {% if result.get('missing') %}
+            <ul>
+                {% for skill in result.get('missing', []) %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
             {% else %}
-                <p>No missing skills detected.</p>
+            <p>No missing skills detected.</p>
+            {% endif %}
+
+            <h2>Semantically Matched Requirements</h2>
+            {% if result.get('semantic_matched') %}
+            <ul>
+                {% for item in result.get('semantic_matched', []) %}
+                <li>
+                    {% if item is mapping %}
+                    {{ item.get('requirement', item) }}
+                    {% else %}
+                    {{ item }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No semantic matches saved.</p>
+            {% endif %}
+
+            <h2>Requirements to Review</h2>
+            {% if result.get('semantic_missing') %}
+            <ul>
+                {% for item in result.get('semantic_missing', []) %}
+                <li>
+                    {% if item is mapping %}
+                    {{ item.get('requirement', item) }}
+                    {% else %}
+                    {{ item }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No missing semantic requirements saved.</p>
+            {% endif %}
+
+            <h2>Resume Improvement Report</h2>
+
+            {% set improvement = result.get('improvement', {}) %}
+
+            <h3>Missing Job Keywords</h3>
+            {% if improvement.get('missing_keywords') %}
+            <ul>
+                {% for keyword in improvement.get('missing_keywords', []) %}
+                <li>{{ keyword }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No missing keywords detected.</p>
+            {% endif %}
+
+            <h3>Weak Phrases</h3>
+            {% if improvement.get('weak_phrases') %}
+            <ul>
+                {% for phrase in improvement.get('weak_phrases', []) %}
+                <li>{{ phrase }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No weak phrases detected.</p>
             {% endif %}
 
             <h2>Improvement Suggestions</h2>
-            {% if result.suggestions %}
-                <ul>
-                    {% for suggestion in result.suggestions %}
-                        <li>{{ suggestion }}</li>
-                    {% endfor %}
-                </ul>
+            {% if result.get('suggestions') %}
+            <ul>
+                {% for suggestion in result.get('suggestions', []) %}
+                <li>{{ suggestion }}</li>
+                {% endfor %}
+            </ul>
             {% else %}
-                <p>No suggestions saved.</p>
+            <p>No suggestions saved.</p>
             {% endif %}
+
+            <hr>
 
             <p>
                 <a href="/history/{{ record.id }}/download">Download PDF</a>
                 |
                 <a href="/history">Back to History</a>
+                |
+                <a href="/">Back to Analyzer</a>
             </p>
+
         </section>
     </main>
+
 </body>
+
 </html>
